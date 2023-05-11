@@ -1,12 +1,13 @@
 lib_LTLIBRARIES = libhunspell-1.7.la
-libhunspell_1_7_includedir = $(includedir)/hunspell
+libhunspell_1_7_includedir = $(includedir)/hunspell $(includedir)/hunspell/xz-embedded
 libhunspell_1_7_la_SOURCES=affentry.cxx affentry.hxx affixmgr.cxx affixmgr.hxx \
                            atypes.hxx baseaffix.hxx csutil.cxx csutil.hxx \
                            filemgr.cxx filemgr.hxx hashmgr.cxx hashmgr.hxx \
                            htypes.hxx hunspell.cxx hunspell.h hunspell.hxx \
                            hunzip.cxx hunzip.hxx langnum.hxx \
                            phonet.cxx phonet.hxx replist.cxx replist.hxx \
-                           suggestmgr.cxx suggestmgr.hxx utf_info.hxx w_char.hxx
+                           suggestmgr.cxx suggestmgr.hxx utf_info.hxx w_char.hxx \
+                           xz-embedded/xz_crc32.c xz-embedded/xz_crc64.c xz-embedded/xz_dec_lzma2.c xz-embedded/xz_dec_stream.c
 nodist_libhunspell_1_7_la_SOURCES=hunvisapi.h
 
 
