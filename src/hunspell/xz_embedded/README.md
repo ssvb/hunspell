@@ -1,7 +1,23 @@
+## Rationale
+
+Advantages:
+
+* public domain, so no license compatibility problems
+* well tested
+* small footprint (~20K to the compiled binary)
+* excellent compression ratio
+
+Weaknesses:
+* decompression speed is okay, but there are much faster alternatives
+
+
+## Getting or updating upstream sources
+
 From https://git.tukaani.org/xz-embedded.git commit d89ad8130128d71c773f5e50e356562a506f843e
 The `hunxz_update_from_upstream.rb` script can be used for trying to upgrade.
 
-Example:
+## Example
+
 ```c++
 #include <fstream>
 #include <iostream>
