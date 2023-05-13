@@ -405,7 +405,7 @@ extern void hunxz_dec_microlzma_end(struct hunxz_dec_microlzma *s);
  */
 #ifndef XZ_USE_CRC64
 #	undef XZ_INTERNAL_CRC64
-#	define XZ_INTERNAL_CRC64 1
+#	define XZ_INTERNAL_CRC64 0
 #endif
 #ifndef XZ_INTERNAL_CRC64
 #	ifdef __KERNEL__
