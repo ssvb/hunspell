@@ -1,11 +1,11 @@
-# A script for tuning the upstream xz-embedded sources. The necessary
-# options are enabled and the "xz_*" prefix is changed to "hunxz_*".
+# A script for tweaking the upstream xz-embedded sources
 #
 # Authors: Siarhei Siamashka <siarhei.siamashka@gmail.com>
 #
 # This file has been put into the public domain.
 # You can do whatever you want with this file.
 
+prefix = "hun"
 tmpdir = "upstream-xz-embedded"
 upstreamgit = "https://git.tukaani.org/xz-embedded.git"
 
@@ -14,7 +14,7 @@ unless File.exists?("#{tmpdir}/.git")
   exit 1
 end
 
-# The recommended list of source files
+# The list of source files
 src_files = "
         linux/include/linux/xz.h
         linux/lib/xz/xz_crc32.c
@@ -26,25 +26,22 @@ src_files = "
         userspace/xz_config.h
 ".strip.split
 
-# These options will be uncommented in xz_config.h
-use_options = "
-  XZ_DEC_CONCATENATED
-".strip.split
-
-upstreamrev = `git -C #{tmpdir} rev-parse HEAD`.strip
-
-updatedreadmetext = File.read("README.md").gsub(/(commit )[0-9a-f]+/, "\\1#{upstreamrev}")
+# Update the commit hash in README.md
+commit_hash = `git -C #{tmpdir} rev-parse HEAD`.strip
+updatedreadmetext = File.read("README.md").gsub(/(commit )[0-9a-f]+/, "\\1#{commit_hash}")
 File.write("README.md", updatedreadmetext)
-
-
-readme = sprintf("From %s commit %s\n", upstreamgit, upstreamrev) +
-         "The update-from-upstream.rb script can be used for trying to upgrade.\n"
-File.write("readme.txt", readme)
 
 src_files.each do |fname|
   data = File.read(tmpdir + "/" + fname)
-  data.gsub!(/(\/\*\s*(\#\s*define\s+(\w+))\s*\*\/)/) { use_options.include?($3) ? $2 : $1 }
+  # uncomment XZ_DEC_CONCATENATED and add XZ_DEC_ANY_CHECK
+  data.gsub!(/(\/\*\s*(\#\s*define\s+(XZ_DEC_CONCATENATED))\s*\*\/)/, "\\2\n#define XZ_DEC_ANY_CHECK")
+  # update include path
   data.gsub!("<linux/xz.h>", "\"xz.h\"")
-  data.gsub!(/([^\w\"])xz_/, "\\1hunxz_")
+  # change the "xz_" prefix to a different one
+  data.gsub!(/([^\w\"])xz_/, "\\1#{prefix}xz_")
+  # these tweaks improve performance
+  data.gsub!(/static void lzma_len\(/, "static __always_inline void lzma_len(")
+  data.gsub!(/static bool dict_repeat\(/, "static __always_inline bool dict_repeat(")
+  # save the patched file
   File.write(File.basename(fname), data)
 end

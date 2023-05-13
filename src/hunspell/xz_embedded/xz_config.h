@@ -12,6 +12,7 @@
 
 /* Uncomment to enable building of hunxz_dec_catrun(). */
 #define XZ_DEC_CONCATENATED
+#define XZ_DEC_ANY_CHECK
 
 /* Uncomment to enable CRC64 support. */
 /* #define XZ_USE_CRC64 */

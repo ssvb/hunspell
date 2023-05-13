@@ -43,6 +43,9 @@ protected:
 			b.out_pos = 0;
 			b.out_size = outbufsize;
 			ret = hunxz_dec_catrun(s, &b, b.in_size == 0);
+			/* Try again if it's just an unsupported checksum type */
+			if (ret == XZ_UNSUPPORTED_CHECK && b.out_pos == 0)
+				ret = hunxz_dec_catrun(s, &b, b.in_size == 0);
 			reinterpret_cast<hunxz_reader_streambuf *>(srcbuf)->from_hunxz_buf(&b);
 			setg(out, out, out + b.out_pos);
 		}
@@ -55,8 +58,7 @@ public:
 		this->srcbuf = srcbuf;
 		this->outbufsize = outbufsize;
 		out = new char[outbufsize];
-		hunxz_crc32_init(); // FIXME? This initializes global arrays and should be done only once at start
-		hunxz_crc64_init(); // FIXME? This initializes global arrays and should be done only once at start
+		hunxz_crc32_init(); // FIXME?
 		s = hunxz_dec_init(XZ_DYNALLOC, mem_usage_limit);
 	}
 	virtual ~hunxz_decoder_streambuf() {

@@ -347,7 +347,7 @@ static inline void dict_put(struct dictionary *dict, uint8_t byte)
  * invalid, false is returned. On success, true is returned and *len is
  * updated to indicate how many bytes were left to be repeated.
  */
-static bool dict_repeat(struct dictionary *dict, uint32_t *len, uint32_t dist)
+static __always_inline bool dict_repeat(struct dictionary *dict, uint32_t *len, uint32_t dist)
 {
 	size_t back;
 	uint32_t left;
@@ -648,7 +648,7 @@ static void lzma_literal(struct hunxz_dec_lzma2 *s)
 }
 
 /* Decode the length of the match into s->lzma.len. */
-static void lzma_len(struct hunxz_dec_lzma2 *s, struct lzma_len_dec *l,
+static __always_inline void lzma_len(struct hunxz_dec_lzma2 *s, struct lzma_len_dec *l,
 		     uint32_t pos_state)
 {
 	uint16_t *probs;
