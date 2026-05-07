@@ -141,7 +141,6 @@ opentaal_cpdpat2.dic \
 2999225.dic \
 onlyincompound2.dic \
 forceucase.dic \
-nepali.dic \
 hu.dic \
 warn.dic \
 timelimit.dic \
@@ -666,9 +665,6 @@ forceucase.dic \
 forceucase.good \
 forceucase.sug \
 forceucase.wrong \
-nepali.aff \
-nepali.dic \
-nepali.good \
 hu.aff \
 hu.dic \
 hu.good \
