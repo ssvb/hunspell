@@ -30,8 +30,7 @@ jobs:
           make
           cp src/tools/hunspell hunspell.this
           echo "== Compiling the master branch =="
-          git fetch origin master
-          git clone -b master ../hunspell
+          git clone https://github.com/hunspell/hunspell.git
           pushd hunspell
           autoreconf -vfi
           ./configure --disable-shared --enable-static
