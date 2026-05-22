@@ -15,7 +15,7 @@ jobs:
       - name: Install the necessary packages
         run: |
           sudo apt-get update && sudo apt-get install ruby crystal hyperfine heaptrack hunspell nuspell zip gawk -y
-          sudo apt-get build-dep hunspell -y
+          sudo apt install -y build-essential autoconf automake libtool libreadline-dev gettext
 
       - name: Run benchmarks
         run: |
