@@ -30,6 +30,7 @@ jobs:
           make
           cp src/tools/hunspell hunspell.this
           echo "== Compiling the master branch =="
+          git fetch origin master
           git clone -b master ../hunspell
           pushd hunspell
           autoreconf -vfi
