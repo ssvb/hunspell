@@ -53,7 +53,7 @@ jobs:
           cp dictionaries/*.dic ..
           popd
           echo "=== Decode the wordlist ==="
-          time ./hunaftool be_BY.aff be_BY.dic words.txt
+          time ./hunaftool bg_BG.aff bg_BG.dic words.txt
           echo "=== Preparing a reencoded dictionary ==="
           time ./hunaftool bg_BG.aff words.txt bg_BG-reenc.dic
           time ./hunaftool bg_BG.aff bg_BG.dic bg_BG-reenc.aff
