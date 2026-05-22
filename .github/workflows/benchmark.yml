@@ -1,0 +1,116 @@
+name: benchmark
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: benchmark
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install the necessary packages
+        run: |
+          sudo apt-get update && sudo apt-get install ruby crystal hyperfine heaptrack hunspell nuspell zip gawk -y
+          sudo apt install -y build-essential autoconf automake libtool libreadline-dev gettext autopoint
+
+      - name: Run benchmarks
+        run: |
+          mkdir out
+          cat /proc/cpuinfo | tee out/cpuinfo.txt
+          hunspell --version | tee out/versions.txt
+          nuspell --version | tee -a out/versions.txt
+          crystal --version | tee -a out/versions.txt
+          echo "== Compiling this branch =="
+          autoreconf -vfi
+          ./configure --disable-shared --enable-static
+          make
+          cp src/tools/hunspell hunspell.this
+          echo "== Compiling the master branch =="
+          git clone https://github.com/hunspell/hunspell.git
+          pushd hunspell
+          autoreconf -vfi
+          ./configure --disable-shared --enable-static
+          make
+          cp src/tools/hunspell ../hunspell.master
+          popd
+          echo "== Preparing tools =="
+          wget https://raw.githubusercontent.com/hunspell/hunspell/refs/tags/v1.7.3/src/tools/makealias
+          wget https://raw.githubusercontent.com/hunspell/hunspell/refs/tags/v1.7.3/src/tools/affixcompress
+          chmod +x makealias
+          chmod +x affixcompress
+          wget https://raw.githubusercontent.com/ssvb/hunaftool/b5d8f3b59c81f42676662b775ef5877429e1dc15/hunaftool.rb
+          time crystal build --release --static hunaftool.rb
+          echo "== Preparing the dictionary =="
+          mkdir tmpdic
+          pushd tmpdic
+          wget https://addons.mozilla.org/firefox/downloads/file/4639627/bulgarian_dictionary-4.4.5.xpi
+          unzip bulgarian_dictionary-4.4.5.xpi
+          cp dictionaries/*.aff ..
+          cp dictionaries/*.dic ..
+          popd
+          echo "=== Decode the wordlist ==="
+          time ./hunaftool bg_BG.aff bg_BG.dic words.txt
+          echo "=== Preparing a reencoded dictionary ==="
+          time ./hunaftool bg_BG.aff words.txt bg_BG-reenc.dic
+          time ./hunaftool bg_BG.aff bg_BG.dic bg_BG-reenc.aff
+          ./makealias 
+          echo "=== Prepare an uncompressed dictionary ==="
+          grep -v -E "^([SP]FX|NEEDAFFIX|NOSUGGEST)" bg_BG.aff > bg_BG-unp.aff
+          cat words.txt | wc -l > bg_BG-unp.dic
+          cat words.txt >> bg_BG-unp.dic
+          echo "=== Preparing an affixcompress dictionary ==="
+          cp bg_BG-unp.aff bg_BG-affixcompress.aff
+          ./affixcompress words.txt 2>/dev/null >/dev/null
+          sed -i s/FLAG\ num/FLAG\ num\\\nNEEDAFFIX\ 65000/ words.txt.aff
+          cat words.txt.aff >> bg_BG-affixcompress.aff
+          rm words.txt.aff
+          mv words.txt.dic bg_BG-affixcompress.dic
+          echo "=== Preparing an affixcompress optimized dictionary ==="
+          time ./hunaftool bg_BG-affixcompress.aff words.txt bg_BG-affixcompress-reenc.dic
+          time ./hunaftool bg_BG-affixcompress.aff bg_BG-affixcompress-reenc.dic bg_BG-affixcompress-reenc.aff
+          echo "=== Preparing 8-bit CP1251 variants ==="
+          cat bg_BG-unp.aff | sed 's/́//' | sed 's/ʼ/’/' | sed 's/UTF\-8/CP1251/' | iconv -t CP1251 > bg_BG-unp-8bit.aff
+          cat bg_BG-unp.dic | iconv -t CP1251 > bg_BG-unp-8bit.dic
+          cat bg_BG-reenc.aff | sed 's/́//' | sed 's/ʼ/’/' | sed 's/UTF\-8/CP1251/' | iconv -t CP1251 > bg_BG-reenc-8bit.aff
+          cat bg_BG-reenc.dic | iconv -t CP1251 > bg_BG-reenc-8bit.dic
+          cat bg_BG-affixcompress-reenc.aff | sed 's/́//' | sed 's/ʼ/’/' | sed 's/UTF\-8/CP1251/' | iconv -t CP1251 > bg_BG-affixcompress-reenc-8bit.aff
+          cat bg_BG-affixcompress-reenc.dic | iconv -t CP1251 > bg_BG-affixcompress-reenc-8bit.dic
+          echo "=== Benchmark ==="
+          ruby heaptrack_and_hyperfine.rb \
+                    "./hunspell.this -d bg_BG-unp -l words.txt" \
+                    "./hunspell.this -d bg_BG-unp-8bit -l words.txt" \
+                    "./hunspell.this -d bg_BG -l words.txt" \
+                    "./hunspell.this -d bg_BG-reenc -l words.txt" \
+                    "./hunspell.this -d bg_BG-reenc-8bit -l words.txt" \
+                    "./hunspell.this -d bg_BG-affixcompress -l words.txt" \
+                    "./hunspell.this -d bg_BG-affixcompress-reenc -l words.txt" \
+                    "./hunspell.this -d bg_BG-affixcompress-reenc-8bit -l words.txt" \
+                    "./hunspell.master -d bg_BG-unp -l words.txt" \
+                    "./hunspell.master -d bg_BG-unp-8bit -l words.txt" \
+                    "./hunspell.master -d bg_BG -l words.txt" \
+                    "./hunspell.master -d bg_BG-reenc -l words.txt" \
+                    "./hunspell.master -d bg_BG-reenc-8bit -l words.txt" \
+                    "./hunspell.master -d bg_BG-affixcompress -l words.txt" \
+                    "./hunspell.master -d bg_BG-affixcompress-reenc -l words.txt" \
+                    "./hunspell.master -d bg_BG-affixcompress-reenc-8bit -l words.txt" \
+                    "nuspell -d bg_BG-unp words.txt" \
+                    "nuspell -d bg_BG-unp-8bit words.txt" \
+                    "nuspell -d bg_BG words.txt" \
+                    "nuspell -d bg_BG-reenc words.txt" \
+                    "nuspell -d bg_BG-reenc-8bit words.txt" \
+                    "nuspell -d bg_BG-affixcompress words.txt" \
+                    "nuspell -d bg_BG-affixcompress-reenc words.txt" \
+                    "nuspell -d bg_BG-affixcompress-reenc-8bit words.txt" \
+                    | tee out/benchmark.md
+          cp *.aff out
+          cp *.dic out
+          cp words.txt out
+          zip -rq results.zip out
+      - uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-hunspell
+          path: results.zip
