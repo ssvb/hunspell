@@ -45,10 +45,13 @@ jobs:
           wget https://raw.githubusercontent.com/ssvb/hunaftool/b5d8f3b59c81f42676662b775ef5877429e1dc15/hunaftool.rb
           time crystal build --release --static hunaftool.rb
           echo "== Preparing the dictionary =="
+          mkdir tmpdic
+          pushd tmpdic
           wget https://addons.mozilla.org/firefox/downloads/file/4639627/bulgarian_dictionary-4.4.5.xpi
           unzip bulgarian_dictionary-4.4.5.xpi
-          cp dictionaries/*.aff .
-          cp dictionaries/*.dic .
+          cp dictionaries/*.aff ..
+          cp dictionaries/*.dic ..
+          popd
           echo "=== Decode the wordlist ==="
           time ./hunaftool be_BY.aff be_BY.dic words.txt
           echo "=== Preparing a reencoded dictionary ==="
