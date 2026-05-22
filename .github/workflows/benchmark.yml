@@ -37,7 +37,6 @@ jobs:
           make
           cp src/tools/hunspell ../hunspell.master
           popd
-          mkdir out
           echo "== Preparing tools =="
           wget https://raw.githubusercontent.com/hunspell/hunspell/refs/tags/v1.7.3/src/tools/makealias
           wget https://raw.githubusercontent.com/hunspell/hunspell/refs/tags/v1.7.3/src/tools/affixcompress
